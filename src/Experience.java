@@ -9,6 +9,19 @@ public class Experience {
         this.duration = duration;
     }
 
+    // Getter methods for each property
+    public String getJobTitle() {
+        return jobTitle;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public Date getDuration() {
+        return duration;
+    }
+
     @Override
     public String toString() {
         return jobTitle + " at " + company + " (Duration: " + duration + ")";
