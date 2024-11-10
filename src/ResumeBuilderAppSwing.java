@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.regex.Pattern;
 
 public class ResumeBuilderAppSwing extends JFrame {
@@ -15,12 +13,14 @@ public class ResumeBuilderAppSwing extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // Create a panel for input fields
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.insets = new Insets(8, 8, 8, 8); // Add padding around components
 
+        // Title
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -37,23 +37,25 @@ public class ResumeBuilderAppSwing extends JFrame {
         JTextField stateField = new JTextField(20);
         JTextField zipField = new JTextField(10);
 
-        // Set names for validation
+        // Set unique names for each JTextField
         nameField.setName("name");
         emailField.setName("email");
         phoneField.setName("phone");
-        zipField.setName("zip");
         streetField.setName("street");
         cityField.setName("city");
         stateField.setName("state");
+        zipField.setName("zip");
 
         addField(inputPanel, gbc, "Name:", nameField);
         addField(inputPanel, gbc, "Email:", emailField);
         addField(inputPanel, gbc, "Phone:", phoneField);
+
         addField(inputPanel, gbc, "Street:", streetField);
         addField(inputPanel, gbc, "City:", cityField);
         addField(inputPanel, gbc, "State:", stateField);
         addField(inputPanel, gbc, "Zip:", zipField);
 
+        // Objective
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
@@ -90,13 +92,14 @@ public class ResumeBuilderAppSwing extends JFrame {
         JTextField skillField = new JTextField(20);
         addField(inputPanel, gbc, "Skill:", skillField);
 
-        // Buttons
+        // Buttons for Education, Experience, Skills, and Generate Resume
         JButton addEducationButton = new JButton("Add Education");
         JButton addExperienceButton = new JButton("Add Experience");
         JButton addSkillButton = new JButton("Add Skill");
         generateButton = new JButton("Generate Resume");
-        generateButton.setEnabled(false);
+        generateButton.setEnabled(false);  // Initially disable the button
 
+        // Add buttons to panel
         gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy++;
@@ -109,39 +112,49 @@ public class ResumeBuilderAppSwing extends JFrame {
         gbc.gridx = 1;
         inputPanel.add(generateButton, gbc);
 
+        // Add input panel to frame
         add(inputPanel, BorderLayout.CENTER);
 
-        addValidation(nameField, emailField, phoneField, zipField, streetField, cityField, stateField);
-
+        // Event Handlers
         addEducationButton.addActionListener(e -> {
-            if (validateField(degreeField) && validateField(institutionField)
-                    && validateField(gradMonthField) && validateField(gradYearField)) {
-                Date graduationDate = new Date(gradMonthField.getText(), gradYearField.getText());
-                resume.addEducation(new Education(degreeField.getText(), institutionField.getText(), graduationDate));
+            String degree = degreeField.getText();
+            String institution = institutionField.getText();
+            String month = gradMonthField.getText();
+            String year = gradYearField.getText();
+
+            if (!degree.isEmpty() && !institution.isEmpty() && !month.isEmpty() && !year.isEmpty()) {
+                Date graduationDate = new Date(month, year);
+                resume.addEducation(new Education(degree, institution, graduationDate));
                 clearFields(degreeField, institutionField, gradMonthField, gradYearField);
                 JOptionPane.showMessageDialog(this, "Education added!");
             }
         });
 
         addExperienceButton.addActionListener(e -> {
-            if (validateField(jobTitleField) && validateField(companyField)
-                    && validateField(durationMonthField) && validateField(durationYearField)) {
-                Date duration = new Date(durationMonthField.getText(), durationYearField.getText());
-                resume.addExperience(new Experience(jobTitleField.getText(), companyField.getText(), duration));
+            String jobTitle = jobTitleField.getText();
+            String company = companyField.getText();
+            String month = durationMonthField.getText();
+            String year = durationYearField.getText();
+
+            if (!jobTitle.isEmpty() && !company.isEmpty() && !month.isEmpty() && !year.isEmpty()) {
+                Date duration = new Date(month, year);
+                resume.addExperience(new Experience(jobTitle, company, duration));
                 clearFields(jobTitleField, companyField, durationMonthField, durationYearField);
                 JOptionPane.showMessageDialog(this, "Experience added!");
             }
         });
 
         addSkillButton.addActionListener(e -> {
-            if (validateField(skillField)) {
-                resume.addSkill(skillField.getText());
+            String skill = skillField.getText();
+            if (!skill.isEmpty()) {
+                resume.addSkill(skill);
                 skillField.setText("");
                 JOptionPane.showMessageDialog(this, "Skill added!");
             }
         });
 
         generateButton.addActionListener(e -> {
+            // Collect all inputs
             resume.setName(nameField.getText());
             resume.setEmail(emailField.getText());
             resume.setPhone(phoneField.getText());
@@ -149,10 +162,14 @@ public class ResumeBuilderAppSwing extends JFrame {
             resume.setAddress(address);
             resume.setObjective(objectiveArea.getText());
 
+            // Open the ResumeDisplay JFrame
             ResumeDisplay display = new ResumeDisplay(resume);
             display.setVisible(true);
-            this.dispose();
+            this.dispose(); // Close the input frame
         });
+
+        // Add validation for the fields to enable the generate button
+        addValidation(nameField, emailField, phoneField, streetField, cityField, stateField, zipField);
     }
 
     private void addField(JPanel panel, GridBagConstraints gbc, String label, JTextField field) {
@@ -171,9 +188,14 @@ public class ResumeBuilderAppSwing extends JFrame {
 
     private void addValidation(JTextField... fields) {
         for (JTextField field : fields) {
-            field.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyReleased(KeyEvent e) {
+            field.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                    checkFields(fields);
+                }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                    checkFields(fields);
+                }
+                public void changedUpdate(javax.swing.event.DocumentEvent e) {
                     checkFields(fields);
                 }
             });
@@ -191,34 +213,35 @@ public class ResumeBuilderAppSwing extends JFrame {
     private boolean validateField(JTextField field) {
         String text = field.getText().trim();
 
-        // Check for email validation
-        if (field.getName().equals("email")) {
-            // Convert the email to lowercase
-            String email = text.toLowerCase();
+        if (field == null) return false;
 
-            // Validate email: only allows gmail.com or .com, .org, .edu domains
-            return Pattern.matches("^[A-Za-z0-9+_.-]+@gmail\\.com$", email)
-                    || Pattern.matches("^[A-Za-z0-9+_.-]+\\.(com|org|edu)$", email);
-        }
-
-        // Check for phone number validation (only 10 digits allowed)
-        else if (field.getName().equals("phone")) {
-            return Pattern.matches("^[0-9]{10}$", text); // Validates 10 digit phone number
-        }
-
-        // Check for zip code validation (Indian PIN codes, allowing 6 digits)
-        else if (field.getName().equals("zip")) {
-            return Pattern.matches("^[0-9]{6}$", text); // Validates 6 digit zip code (PIN code)
-        }
-
-        // Check for city, state, and street - no special characters allowed
-        else if (field.getName().equals("city") || field.getName().equals("state") || field.getName().equals("street")) {
-            return Pattern.matches("^[A-Za-z0-9\\s'-]+$", text); // Validates no special characters
-        }
-
-        else {
+        // Name validation (non-empty)
+        if (field.getName().equals("name")) {
             return !text.isEmpty();
         }
+
+        // Email validation
+        else if (field.getName().equals("email")) {
+            return Pattern.matches("^[A-Za-z0-9+_.-]+@gmail\\.com$", text)
+                    || Pattern.matches("^[A-Za-z0-9+_.-]+\\.(com|org|edu)$", text);
+        }
+
+        // Phone validation (10 digits)
+        else if (field.getName().equals("phone")) {
+            return Pattern.matches("^[0-9]{10}$", text);
+        }
+
+        // Street, City, State validation (non-empty)
+        else if (field.getName().equals("street") || field.getName().equals("city") || field.getName().equals("state")) {
+            return !text.isEmpty();
+        }
+
+        // Zip code validation (5 digits)
+        else if (field.getName().equals("zip")) {
+            return Pattern.matches("^[0-9]{6}$", text);
+        }
+
+        return false;
     }
 
     public static void main(String[] args) {
