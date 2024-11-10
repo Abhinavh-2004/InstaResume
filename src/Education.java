@@ -9,6 +9,19 @@ public class Education {
         this.graduationDate = graduationDate;
     }
 
+    // Getter methods for each property
+    public String getDegree() {
+        return degree;
+    }
+
+    public String getInstitution() {
+        return institution;
+    }
+
+    public Date getGraduationDate() {
+        return graduationDate;
+    }
+
     @Override
     public String toString() {
         return degree + " from " + institution + " (Graduated: " + graduationDate + ")";
