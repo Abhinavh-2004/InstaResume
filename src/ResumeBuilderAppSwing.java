@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class ResumeBuilderAppSwing extends JFrame {
@@ -18,7 +20,7 @@ public class ResumeBuilderAppSwing extends JFrame {
         inputPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 8, 8, 8); // Add padding around components
+        gbc.insets = new Insets(8, 8, 8, 8);
 
         // Title
         gbc.gridx = 0;
@@ -37,7 +39,6 @@ public class ResumeBuilderAppSwing extends JFrame {
         JTextField stateField = new JTextField(20);
         JTextField zipField = new JTextField(10);
 
-        // Set unique names for each JTextField
         nameField.setName("name");
         emailField.setName("email");
         phoneField.setName("phone");
@@ -49,7 +50,6 @@ public class ResumeBuilderAppSwing extends JFrame {
         addField(inputPanel, gbc, "Name:", nameField);
         addField(inputPanel, gbc, "Email:", emailField);
         addField(inputPanel, gbc, "Phone:", phoneField);
-
         addField(inputPanel, gbc, "Street:", streetField);
         addField(inputPanel, gbc, "City:", cityField);
         addField(inputPanel, gbc, "State:", stateField);
@@ -88,7 +88,7 @@ public class ResumeBuilderAppSwing extends JFrame {
         addField(inputPanel, gbc, "Duration Month:", durationMonthField);
         addField(inputPanel, gbc, "Duration Year:", durationYearField);
 
-        // Skills Field
+        // Skill Field
         JTextField skillField = new JTextField(20);
         addField(inputPanel, gbc, "Skill:", skillField);
 
@@ -97,9 +97,8 @@ public class ResumeBuilderAppSwing extends JFrame {
         JButton addExperienceButton = new JButton("Add Experience");
         JButton addSkillButton = new JButton("Add Skill");
         generateButton = new JButton("Generate Resume");
-        generateButton.setEnabled(false);  // Initially disable the button
+        generateButton.setEnabled(false);
 
-        // Add buttons to panel
         gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy++;
@@ -112,7 +111,6 @@ public class ResumeBuilderAppSwing extends JFrame {
         gbc.gridx = 1;
         inputPanel.add(generateButton, gbc);
 
-        // Add input panel to frame
         add(inputPanel, BorderLayout.CENTER);
 
         // Event Handlers
@@ -138,7 +136,18 @@ public class ResumeBuilderAppSwing extends JFrame {
 
             if (!jobTitle.isEmpty() && !company.isEmpty() && !month.isEmpty() && !year.isEmpty()) {
                 Date duration = new Date(month, year);
-                resume.addExperience(new Experience(jobTitle, company, duration));
+
+                // Collect tasks for the experience
+                List<String> tasks = new ArrayList<>();
+                String task;
+                do {
+                    task = JOptionPane.showInputDialog(this, "Enter a task (leave empty to finish):");
+                    if (task != null && !task.isEmpty()) {
+                        tasks.add(task);
+                    }
+                } while (task != null && !task.isEmpty());
+
+                resume.addExperience(new Experience(jobTitle, company, duration, tasks));
                 clearFields(jobTitleField, companyField, durationMonthField, durationYearField);
                 JOptionPane.showMessageDialog(this, "Experience added!");
             }
@@ -154,7 +163,6 @@ public class ResumeBuilderAppSwing extends JFrame {
         });
 
         generateButton.addActionListener(e -> {
-            // Collect all inputs
             resume.setName(nameField.getText());
             resume.setEmail(emailField.getText());
             resume.setPhone(phoneField.getText());
@@ -165,10 +173,9 @@ public class ResumeBuilderAppSwing extends JFrame {
             // Open the ResumeDisplay JFrame
             ResumeDisplay display = new ResumeDisplay(resume);
             display.setVisible(true);
-            this.dispose(); // Close the input frame
+            this.dispose();
         });
 
-        // Add validation for the fields to enable the generate button
         addValidation(nameField, emailField, phoneField, streetField, cityField, stateField, zipField);
     }
 
@@ -219,23 +226,19 @@ public class ResumeBuilderAppSwing extends JFrame {
         if (field.getName().equals("name")) {
             return !text.isEmpty();
         }
-
         // Email validation
         else if (field.getName().equals("email")) {
             return Pattern.matches("^[A-Za-z0-9+_.-]+@gmail\\.com$", text)
                     || Pattern.matches("^[A-Za-z0-9+_.-]+\\.(com|org|edu)$", text);
         }
-
         // Phone validation (10 digits)
         else if (field.getName().equals("phone")) {
             return Pattern.matches("^[0-9]{10}$", text);
         }
-
         // Street, City, State validation (non-empty)
         else if (field.getName().equals("street") || field.getName().equals("city") || field.getName().equals("state")) {
             return !text.isEmpty();
         }
-
         // Zip code validation (5 digits)
         else if (field.getName().equals("zip")) {
             return Pattern.matches("^[0-9]{6}$", text);
