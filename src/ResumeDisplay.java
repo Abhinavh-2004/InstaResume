@@ -115,6 +115,57 @@ public class ResumeDisplay extends JFrame {
 
         gbc.gridy = 5;
         add(buttonPanel, gbc);
+
+        // Print the LaTeX formatted string to the terminal
+        System.out.println(generateLatexString(resume));
+    }
+
+    // Generate a LaTeX-formatted resume string
+    private String generateLatexString(Resume resume) {
+        StringBuilder latex = new StringBuilder();
+
+        latex.append("\\documentclass[a4paper,10pt]{article}\n")
+                .append("\\usepackage[utf8]{inputenc}\n")
+                .append("\\usepackage{geometry}\n")
+                .append("\\geometry{margin=1in}\n")
+                .append("\\begin{document}\n\n");
+
+        latex.append("\\begin{center}\n")
+                .append("\\textbf{\\LARGE ").append(resume.getName()).append("}\\\\\n")
+                .append(resume.getAddress()).append(" \\\\ ")
+                .append(resume.getEmail()).append(" \\quad | \\quad ")
+                .append(resume.getPhone()).append(" \n")
+                .append("\\end{center}\n\n");
+
+        latex.append("\\section*{Objective}\n")
+                .append(resume.getObjective() != null ? resume.getObjective() : "Seeking an entry-level software engineering position.")
+                .append("\n\n");
+
+        latex.append("\\section*{Education}\n");
+        for (Education edu : resume.getEducationList()) {
+            latex.append("\\textbf{").append(edu.getDegree()).append("} - ").append(edu.getInstitution()).append(", ")
+                    .append(edu.getGraduationDate()).append("\\\\\n\n");
+        }
+
+        latex.append("\\section*{Experience}\n");
+        for (Experience exp : resume.getExperienceList()) {
+            latex.append("\\textbf{").append(exp.getJobTitle()).append("} - ").append(exp.getCompany())
+                    .append(" (").append(exp.getDuration()).append(")\\\\\n\\begin{itemize}\n");
+            for (String task : exp.getTasks()) {
+                latex.append("\\item ").append(task).append("\n");
+            }
+            latex.append("\\end{itemize}\n\n");
+        }
+
+        latex.append("\\section*{Skills}\n\\begin{itemize}\n");
+        for (String skill : resume.getSkills()) {
+            latex.append("\\item ").append(skill).append("\n");
+        }
+        latex.append("\\end{itemize}\n\n");
+
+        latex.append("\\end{document}");
+
+        return latex.toString();
     }
 
     // Format the sections like Education, Experience, Skills with headings
